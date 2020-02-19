@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ServerPort1000" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="server.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.master_thesis.server.ServerApplication" />
+    <option name="VM_PARAMETERS" value="-Dserver.port=1000" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

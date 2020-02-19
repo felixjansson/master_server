@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Two servers" type="CompoundRunConfigurationType">
+    <toRun name="ServerPort1000" type="SpringBootApplicationConfigurationType" />
+    <toRun name="ServerPort2000" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>
