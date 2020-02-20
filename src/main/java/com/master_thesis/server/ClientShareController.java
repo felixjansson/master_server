@@ -23,7 +23,7 @@ public class ClientShareController {
     @PostMapping(value = "/client-share")
     void ReceiveShare(@RequestBody ClientShare clientShare){
         put(clientShare);
-        System.out.println(clientShare.toString());
+        System.out.println(clientShare.getClientID());
     }
 
     private void put(ClientShare clientShare){

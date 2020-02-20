@@ -17,11 +17,11 @@ public class Buffer {
     }
 
     private HashMap<Integer, ClientBuffer> buffers;
-    private int transformationID;
+    private int transformatorID;
     private int expectedBufferSize;
 
     public Buffer(int transformationID, int expectedBufferSize) {
-        this.transformationID = transformationID;
+        this.transformatorID = transformationID;
         this.expectedBufferSize = expectedBufferSize;
         buffers = new HashMap<>();
     }
@@ -40,8 +40,8 @@ public class Buffer {
         }
     }
 
-    public int getTransformationID() {
-        return transformationID;
+    public int getTransformatorID() {
+        return transformatorID;
     }
 }
 
