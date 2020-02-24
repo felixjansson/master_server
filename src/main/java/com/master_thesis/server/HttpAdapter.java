@@ -25,7 +25,7 @@ public class HttpAdapter {
         this.objectMapper = objectMapper;
         this.environment = environment;
         String port = environment.getProperty("server.port");
-        StringBuilder sb = new StringBuilder("{\"uri\":\"http://localhost/");
+        StringBuilder sb = new StringBuilder("{\"uri\":\"http://localhost:");
         sb.append(port);
         sb.append("/api/client-share\"}");
         serverURI = sb.toString();
