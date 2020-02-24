@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.*;
 
 @RestController
@@ -13,16 +14,32 @@ import java.util.*;
 public class ClientShareController {
     private HashMap<Integer, Buffer> buffers;
     private PublicParameters publicParameters;
+    private ServerSecretSharing secretSharing;
+    private HttpAdapter httpAdapter;
 
     @Autowired
-    public ClientShareController(PublicParameters publicParameters){
+    public ClientShareController(PublicParameters publicParameters, ServerSecretSharing serverSecretSharing, HttpAdapter httpAdapter){
         this.buffers = new HashMap<>();
         this.publicParameters = publicParameters;
+        this.secretSharing = serverSecretSharing;
+        this.httpAdapter = httpAdapter;
     }
 
     @PostMapping(value = "/client-share")
     void ReceiveShare(@RequestBody ClientShare clientShare){
         put(clientShare);
+        Buffer buffer = buffers.get(clientShare.getTransformatorID());
+        if (buffer.canCompute()){
+            System.out.println("Can compute");
+            List<Integer> shares = buffer.getShares();
+            PartialObject partialObject = new PartialObject();
+            partialObject.setPartialResult(secretSharing.partialEval(shares));
+            partialObject.setPartialProof(secretSharing.partialProof(clientShare.getProofComponent()));
+            partialObject.setServerID(publicParameters.getServerID());
+            URI uri = URI.create("http://localhost:3000/api/partials");
+            httpAdapter.send(uri, partialObject);
+        }
+
         System.out.println(clientShare.getClientID());
     }
 
@@ -42,11 +59,5 @@ public class ClientShareController {
         } else {
             buffer.putClientShare(clientShare);
         }
-
-
-
-
-
     }
-
 }

@@ -2,21 +2,13 @@ package com.master_thesis.server;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class Buffer {
 
-    private class ClientBuffer{
-        Queue<Integer> queue;
-        int id;
-
-        public ClientBuffer(int id) {
-            this.queue = new LinkedList<>();
-            this.id = id;
-        }
-    }
-
-    private HashMap<Integer, ClientBuffer> buffers;
+    private HashMap<Integer, Queue<Integer>> buffers;
     private int transformatorID;
     private int expectedBufferSize;
 
@@ -29,19 +21,31 @@ public class Buffer {
     public void putClientShare(ClientShare clientShare){
         if (clientShare == null) return;
         int clientID = clientShare.getClientID();
-        ClientBuffer clientBuffer = buffers.get(clientID);
+        Queue<Integer> clientBuffer = buffers.get(clientID);
 
         if (clientBuffer == null) {
-            ClientBuffer newClientBuffer = new ClientBuffer(clientID);
-            newClientBuffer.queue.add(clientShare.getShare());
-            buffers.put(clientID, newClientBuffer);
+            Queue<Integer> newQueue = new LinkedList<>();
+            newQueue.add(clientShare.getShare());
+            buffers.put(clientID, newQueue);
         } else {
-            clientBuffer.queue.add(clientShare.getShare());
+
+            buffers.get(clientID).add(clientShare.getShare());
         }
+    }
+
+    public List<Integer> getShares(){
+        if (!canCompute()) return null;
+        return buffers.values().stream().map(Queue::poll).collect(Collectors.toList());
     }
 
     public int getTransformatorID() {
         return transformatorID;
+    }
+
+    public boolean canCompute(){ // TODO: 2020-02-24 Check with PP how many clients
+        boolean allResponded = buffers.values().size() == expectedBufferSize;
+        boolean noEmptyQueues = buffers.values().stream().noneMatch(Queue::isEmpty);
+        return allResponded && noEmptyQueues;
     }
 }
 

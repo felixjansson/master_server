@@ -7,6 +7,17 @@ public class ClientShare {
     private int share;
     private int clientID;
     private int transformatorID;
+    private int proofComponent;
+
+
+    public int getProofComponent() {
+        return proofComponent;
+    }
+
+    public void setProofComponent(int proofComponent) {
+        this.proofComponent = proofComponent;
+    }
+
 
     public int getShare() {
         return share;
