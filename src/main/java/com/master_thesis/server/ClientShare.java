@@ -1,7 +1,5 @@
 package com.master_thesis.server;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-
 public class ClientShare {
 
     private int share;
@@ -17,7 +15,6 @@ public class ClientShare {
     public void setProofComponent(int proofComponent) {
         this.proofComponent = proofComponent;
     }
-
 
     public int getShare() {
         return share;

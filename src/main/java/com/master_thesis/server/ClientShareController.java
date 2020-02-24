@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -27,8 +28,10 @@ public class ClientShareController {
 
     @PostMapping(value = "/client-share")
     void ReceiveShare(@RequestBody ClientShare clientShare){
-        put(clientShare);
-        Buffer buffer = buffers.get(clientShare.getTransformatorID());
+        int transformatorID = clientShare.getTransformatorID();
+        buffers.putIfAbsent(transformatorID, new Buffer(publicParameters, transformatorID));
+        Buffer buffer = buffers.get(transformatorID);
+        buffer.putClientShare(clientShare);
         if (buffer.canCompute()){
             System.out.println("Can compute");
             List<Integer> shares = buffer.getShares();
@@ -41,23 +44,5 @@ public class ClientShareController {
         }
 
         System.out.println(clientShare.getClientID());
-    }
-
-    private void put(ClientShare clientShare){
-        if (clientShare == null){
-            System.out.println("Error: ClientShare is Null");
-            return;
-        }
-        int transformatorID = clientShare.getTransformatorID();
-        Buffer buffer = buffers.get(transformatorID);
-
-        if (buffer == null){
-            List<Integer> clients = publicParameters.getClients();
-            Buffer newBuffer = new Buffer(transformatorID, clients.size());
-            newBuffer.putClientShare(clientShare);
-            buffers.put(transformatorID, newBuffer);
-        } else {
-            buffer.putClientShare(clientShare);
-        }
     }
 }

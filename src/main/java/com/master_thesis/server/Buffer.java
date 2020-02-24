@@ -1,51 +1,45 @@
 package com.master_thesis.server;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Buffer {
 
     private HashMap<Integer, Queue<Integer>> buffers;
+    private PublicParameters publicParameters;
     private int transformatorID;
-    private int expectedBufferSize;
 
-    public Buffer(int transformationID, int expectedBufferSize) {
-        this.transformatorID = transformationID;
-        this.expectedBufferSize = expectedBufferSize;
+    public Buffer(PublicParameters publicParameters, int transformatorID) {
+        this.publicParameters = publicParameters;
+        this.transformatorID = transformatorID;
         buffers = new HashMap<>();
     }
 
+    public void updateClients() {
+        List<Integer> clientIDs = publicParameters.getClients(transformatorID);
+
+        // Removes all client that are no longer connected to that transformator
+        Set<Integer> keysToRemove = buffers.keySet();
+        keysToRemove.removeIf(Predicate.not(clientIDs::contains));
+
+        // add new clients
+        clientIDs.forEach(id -> buffers.putIfAbsent(id, new LinkedList<>()));
+    }
+
     public void putClientShare(ClientShare clientShare){
-        if (clientShare == null) return;
-        int clientID = clientShare.getClientID();
-        Queue<Integer> clientBuffer = buffers.get(clientID);
-
-        if (clientBuffer == null) {
-            Queue<Integer> newQueue = new LinkedList<>();
-            newQueue.add(clientShare.getShare());
-            buffers.put(clientID, newQueue);
-        } else {
-
-            buffers.get(clientID).add(clientShare.getShare());
-        }
+        updateClients();
+        buffers.get(clientShare.getClientID()).add(clientShare.getShare());
     }
 
     public List<Integer> getShares(){
-        if (!canCompute()) return null;
         return buffers.values().stream().map(Queue::poll).collect(Collectors.toList());
     }
 
-    public int getTransformatorID() {
-        return transformatorID;
-    }
-
     public boolean canCompute(){ // TODO: 2020-02-24 Check with PP how many clients
-        boolean allResponded = buffers.values().size() == expectedBufferSize;
+        updateClients();
         boolean noEmptyQueues = buffers.values().stream().noneMatch(Queue::isEmpty);
-        return allResponded && noEmptyQueues;
+        return noEmptyQueues;
     }
 }
 

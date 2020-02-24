@@ -1,26 +1,17 @@
 package com.master_thesis.server;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.springframework.asm.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.boot.json.JacksonJsonParser;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class HttpAdapter {
@@ -66,8 +57,8 @@ public class HttpAdapter {
     }
 
     @SneakyThrows
-    public List<Integer> getClients(){
-        URI uri = URI.create("http://localhost:4000/api/client/list");
+    public List<Integer> getClients(int transformatorID){
+        URI uri = URI.create("http://localhost:4000/api/client/list/" + transformatorID);
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return objectMapper.readValue(response.body(), List.class);
