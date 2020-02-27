@@ -1,26 +1,23 @@
 package com.master_thesis.server;
 
+
+import java.math.BigInteger;
+
 public class ClientShare {
 
-    private int share;
+    private BigInteger share;
     private int clientID;
+
+
+
     private int transformatorID;
-    private int proofComponent;
+    private BigInteger proofComponent;
 
-
-    public int getProofComponent() {
-        return proofComponent;
-    }
-
-    public void setProofComponent(int proofComponent) {
-        this.proofComponent = proofComponent;
-    }
-
-    public int getShare() {
+    public BigInteger getShare() {
         return share;
     }
 
-    public void setShare(int share) {
+    public void setShare(BigInteger share) {
         this.share = share;
     }
 
@@ -39,4 +36,34 @@ public class ClientShare {
     public void setTransformatorID(int transformatorID) {
         this.transformatorID = transformatorID;
     }
+
+    public BigInteger getProofComponent() {
+        return proofComponent;
+    }
+
+    public void setProofComponent(BigInteger proofComponent) {
+        this.proofComponent = proofComponent;
+    }
+
+    public BigInteger getNonce() {
+        return nonce;
+    }
+
+    @Override
+    public String toString() {
+        return "ClientShare{" +
+                "share=" + share +
+                ", clientID=" + clientID +
+                ", transformatorID=" + transformatorID +
+                ", proofComponent=" + proofComponent +
+                ", nonce=" + nonce +
+                '}';
+    }
+
+    public void setNonce(BigInteger nonce) {
+        this.nonce = nonce;
+    }
+
+    private BigInteger nonce;
+
 }

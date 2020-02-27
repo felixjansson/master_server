@@ -1,12 +1,15 @@
 package com.master_thesis.server;
 
+import ch.qos.logback.core.net.server.Client;
+
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Buffer {
 
-    private HashMap<Integer, Queue<Integer>> buffers;
+    private HashMap<Integer, Queue<ClientShare>> buffers;
     private PublicParameters publicParameters;
     private int transformatorID;
 
@@ -29,13 +32,36 @@ public class Buffer {
 
     public void putClientShare(ClientShare clientShare){
         updateClients();
-        buffers.get(clientShare.getClientID()).add(clientShare.getShare());
+        buffers.get(clientShare.getClientID()).add(clientShare);
     }
 
-    public List<Integer> getShares(){
-        return buffers.values().stream().map(Queue::poll).collect(Collectors.toList());
+    public List<BigInteger> getNonces(){
+        return buffers.values().stream()
+                .map(Queue::peek)
+                .filter(Objects::nonNull)
+                .map(ClientShare::getNonce)
+                .collect(Collectors.toList());
     }
 
+    public List<BigInteger> getProofComponents(){
+        return buffers.values().stream()
+                .map(Queue::peek)
+                .filter(Objects::nonNull)
+                .map(ClientShare::getProofComponent)
+                .collect(Collectors.toList());
+    }
+
+    public List<BigInteger> getShares(){
+        return buffers.values().stream()
+                .map(Queue::peek)
+                .filter(Objects::nonNull)
+                .map(ClientShare::getShare)
+                .collect(Collectors.toList());
+    }
+
+    public void remove(){
+        buffers.values().forEach(Queue::remove);
+    }
     public boolean canCompute(){ // TODO: 2020-02-24 Check with PP how many clients
         updateClients();
         boolean noEmptyQueues = buffers.values().stream().noneMatch(Queue::isEmpty);

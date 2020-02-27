@@ -1,9 +1,11 @@
 package com.master_thesis.server;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public interface ServerSecretSharing {
 
-     int partialEval(List<Integer> shares);
-     int partialProof(int proofComponent);
+     BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase);
+     BigInteger partialProof(BigInteger partialResult, BigInteger fieldBase, BigInteger generator);
+     BigInteger lastClientProof(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator);
 }
