@@ -24,8 +24,7 @@ public class HomomorphicHash implements ServerSecretSharing {
     @Override
     public BigInteger lastClientProof(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator) {
         BigInteger totient = eulerTotient(fieldBase);
-        BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
-
+        BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add);
         BigDecimal sum = new BigDecimal(nonceSum);
         BigDecimal tot = new BigDecimal(totient);
         BigInteger ceil = sum.divide(tot, RoundingMode.CEILING).toBigInteger();
@@ -34,7 +33,7 @@ public class HomomorphicHash implements ServerSecretSharing {
     }
 
     public BigInteger lastClientProofInverse(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator) {
-        BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
+        BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add);
         BigInteger inverse = generator.modInverse(fieldBase);
         return inverse.modPow(nonceSum, fieldBase);
     }
