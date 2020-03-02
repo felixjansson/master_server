@@ -1,7 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Two servers" type="CompoundRunConfigurationType">
+  <configuration default="false" name="4 servers" type="CompoundRunConfigurationType">
     <toRun name="ServerPort2001" type="SpringBootApplicationConfigurationType" />
     <toRun name="ServerPort2000" type="SpringBootApplicationConfigurationType" />
+    <toRun name="ServerPort2002" type="SpringBootApplicationConfigurationType" />
+    <toRun name="ServerPort2003" type="SpringBootApplicationConfigurationType" />
     <toRun name="deleteServers#1" type="HttpClient.HttpRequestRunConfigurationType" />
     <method v="2" />
   </configuration>

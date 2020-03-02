@@ -6,6 +6,6 @@ import java.util.List;
 public interface ServerSecretSharing {
 
      BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase);
-     BigInteger partialProof(BigInteger partialResult, BigInteger fieldBase, BigInteger generator);
+     BigInteger partialProof(List<BigInteger> shares, BigInteger fieldBase, BigInteger generator);
      BigInteger lastClientProof(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator);
 }

@@ -12,13 +12,14 @@ public class HomomorphicHash implements ServerSecretSharing {
 
 
     @Override
-    public BigInteger partialEval(List<BigInteger> shares, BigInteger filedBase) {
-        return shares.stream().reduce(BigInteger.ZERO, (prev, x) -> prev.add(x).mod(filedBase));
+    public BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase) {
+        return shares.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
     }
 
     @Override
-    public BigInteger partialProof(BigInteger partialResult, BigInteger fieldBase, BigInteger generator) {
-        return hash(partialResult, fieldBase, generator);
+    public BigInteger partialProof(List<BigInteger> shares, BigInteger fieldBase, BigInteger generator) {
+        BigInteger shareSum = shares.stream().reduce(BigInteger.ZERO, BigInteger::add);
+        return hash(shareSum, fieldBase, generator);
     }
 
     @Override

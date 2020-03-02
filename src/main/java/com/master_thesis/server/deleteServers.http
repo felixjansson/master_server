@@ -1,0 +1,4 @@
+# curl --location --request DELETE 'localhost:4000/api/server'
+DELETE localhost:4000/api/server
+
+###

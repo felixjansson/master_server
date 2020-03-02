@@ -45,7 +45,7 @@ public class ClientShareController {
             BigInteger generator = publicParameters.getGenerator(transformatorID);
             BigInteger partialResult = secretSharing.partialEval(shares, fieldBase);
 
-            BigInteger serverPartialProof = secretSharing.partialProof(partialResult, fieldBase, generator);
+            BigInteger serverPartialProof = secretSharing.partialProof(shares, fieldBase, generator);
             BigInteger lastClientProof = secretSharing.lastClientProof(buffer.getNonces(), fieldBase, generator);
 
             List<BigInteger> clientProofs = buffer.getProofComponents();
