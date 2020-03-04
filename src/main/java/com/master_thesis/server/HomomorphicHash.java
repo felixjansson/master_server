@@ -29,7 +29,8 @@ public class HomomorphicHash implements ServerSecretSharing {
         BigDecimal sum = new BigDecimal(nonceSum);
         BigDecimal tot = new BigDecimal(totient);
         BigInteger ceil = sum.divide(tot, RoundingMode.CEILING).toBigInteger();
-        BigInteger result = totient.multiply(ceil).subtract(nonceSum);
+        BigInteger result = totient.multiply(ceil).subtract(nonceSum).mod(fieldBase);
+        assert result.divide(fieldBase).equals(BigInteger.ZERO); // TODO: 2020-03-04 Remove this check. (Check if res in field)
         return hash(result, fieldBase, generator);
     }
 
