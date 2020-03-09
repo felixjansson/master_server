@@ -1,8 +1,6 @@
 package com.master_thesis.server;
 
 import ch.qos.logback.classic.Logger;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -11,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
@@ -23,10 +20,10 @@ import java.util.List;
 @Component
 public class HttpAdapter {
 
+    private static final Logger log = (Logger) LoggerFactory.getLogger(HttpAdapter.class);
+    private final String coordinator;
     private ObjectMapper objectMapper;
     private String serverURI;
-    private final String coordinator;
-    private static final Logger log = (Logger) LoggerFactory.getLogger(HttpAdapter.class);
 
 
     @Autowired

@@ -8,21 +8,18 @@ import java.math.RoundingMode;
 import java.util.List;
 
 @Component
-public class HomomorphicHash implements ServerSecretSharing {
+public class HomomorphicHash {
 
 
-    @Override
     public BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase) {
         return shares.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
     }
 
-    @Override
-    public BigInteger partialProof(List<BigInteger> shares, BigInteger fieldBase, BigInteger generator) {
+    public BigInteger homomorphicPartialProof(List<BigInteger> shares, BigInteger fieldBase, BigInteger generator) {
         BigInteger shareSum = shares.stream().reduce(BigInteger.ZERO, BigInteger::add);
         return hash(shareSum, fieldBase, generator);
     }
 
-    @Override
     public BigInteger lastClientProof(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator) {
         BigInteger totient = eulerTotient(fieldBase);
         BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add);

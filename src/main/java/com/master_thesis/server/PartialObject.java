@@ -1,20 +1,18 @@
 package com.master_thesis.server;
 
 import java.math.BigInteger;
-import java.util.List;
+import java.util.Arrays;
 
 public class PartialObject {
 
     private BigInteger partialResult;
-    private BigInteger serverPartialProof;
-    private List<BigInteger> clientPartialProof;
     private int transformatorID;
     private int serverID;
+    private BigInteger homomorphicPartialProof;
+    private ClientInfo[] clientInfos;
 
-    public PartialObject(BigInteger partialResult, BigInteger serverPartialProof, List<BigInteger> clientPartialProof, int transformatorID, int serverID) {
+    public PartialObject(BigInteger partialResult, int transformatorID, int serverID) {
         this.partialResult = partialResult;
-        this.serverPartialProof = serverPartialProof;
-        this.clientPartialProof = clientPartialProof;
         this.transformatorID = transformatorID;
         this.serverID = serverID;
     }
@@ -25,22 +23,6 @@ public class PartialObject {
 
     public void setPartialResult(BigInteger partialResult) {
         this.partialResult = partialResult;
-    }
-
-    public BigInteger getServerPartialProof() {
-        return serverPartialProof;
-    }
-
-    public void setServerPartialProof(BigInteger serverPartialProof) {
-        this.serverPartialProof = serverPartialProof;
-    }
-
-    public List<BigInteger> getClientPartialProof() {
-        return clientPartialProof;
-    }
-
-    public void setClientPartialProof(List<BigInteger> clientPartialProof) {
-        this.clientPartialProof = clientPartialProof;
     }
 
     public int getTransformatorID() {
@@ -59,14 +41,30 @@ public class PartialObject {
         this.serverID = serverID;
     }
 
+    public BigInteger getHomomorphicPartialProof() {
+        return homomorphicPartialProof;
+    }
+
+    public void setHomomorphicPartialProof(BigInteger homomorphicPartialProof) {
+        this.homomorphicPartialProof = homomorphicPartialProof;
+    }
+
+    public ClientInfo[] getClientInfos() {
+        return clientInfos;
+    }
+
+    public void setClientInfos(ClientInfo[] clientInfos) {
+        this.clientInfos = clientInfos;
+    }
+
     @Override
     public String toString() {
         return "PartialObject{" +
                 "partialResult=" + partialResult +
-                ", serverPartialProof=" + serverPartialProof +
-                ", clientPartialProof=" + clientPartialProof +
                 ", transformatorID=" + transformatorID +
                 ", serverID=" + serverID +
+                ", homomorphicPartialProof=" + homomorphicPartialProof +
+                ", clientInfos=" + Arrays.toString(clientInfos) +
                 '}';
     }
 }
