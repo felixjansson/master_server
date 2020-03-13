@@ -1,6 +1,7 @@
 package com.master_thesis.server;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class ClientInfo {
 
@@ -68,4 +69,14 @@ public class ClientInfo {
         this.publicKey = publicKey;
     }
 
+    @Override
+    public String toString() {
+        return "ClientInfo{" +
+                "rsaN=" + rsaN +
+                ", clientProof=" + clientProof +
+                ", rsaProofComponent=" + Arrays.toString(rsaProofComponent) +
+                ", rsaDeterminant=" + rsaDeterminant +
+                ", publicKey=" + publicKey +
+                '}';
+    }
 }

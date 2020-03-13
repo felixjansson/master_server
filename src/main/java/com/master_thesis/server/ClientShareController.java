@@ -56,7 +56,6 @@ public class ClientShareController {
         List<BigInteger> clientProofs = buffer.getProofComponents();
         clientProofs.add(lastClientProof);
         PartialObject partialObject = new PartialObject(partialResult, transformatorID, publicParameters.getServerID());
-//        ClientInfo[] clientInfos = buffer.getClientInfo(transformatorID);
 
 //        Compute proofs for HomomorphicHash construction
         BigInteger homomorphicPartialProof = secretSharing.homomorphicPartialProof(shares, fieldBase, generator);
@@ -67,7 +66,7 @@ public class ClientShareController {
         RSAProofInfo lastClient = new RSAProofInfo(rsaProofInfo.get(0), lastClientProof);
         rsaProofInfo.add(lastClient);
 
-        ClientInfo[] clientInfos = secretSharing.rsaPartialProof(rsaProofInfo);
+        ClientInfo[] clientInfos = secretSharing.rsaPartialProof(rsaProofInfo, transformatorID);
         partialObject.setClientInfos(clientInfos);
 
 //        Send all shares
