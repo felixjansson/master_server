@@ -20,9 +20,9 @@ public class HomomorphicHash {
         return hash(shareSum, fieldBase, generator);
     }
 
-    public BigInteger lastClientProof(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator) {
+    public BigInteger lastClientProof(List<BigInteger> nonce, BigInteger fieldBase, BigInteger generator) {
         BigInteger totient = eulerTotient(fieldBase);
-        BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add);
+        BigInteger nonceSum = nonce.stream().reduce(BigInteger.ZERO, BigInteger::add);
         BigDecimal sum = new BigDecimal(nonceSum);
         BigDecimal tot = new BigDecimal(totient);
         BigInteger ceil = sum.divide(tot, RoundingMode.CEILING).toBigInteger();

@@ -57,21 +57,22 @@ public class RSAThreshold extends HomomorphicHash {
 
         SimpleMatrix adjugateMatrix = getCofactorMatrix(squareMatrixOfClient);
 
-        log.info("\nAdjugat: \n{}", adjugateMatrix);
-
         // Find t rows from skShares
         SimpleMatrix skShares = rsaProofInfo.getSkShare().rows(0, t);
-        log.info("\nskShares = {}", skShares);
 
         BigInteger[] result = new BigInteger[t];
         BigInteger clientProof = rsaProofInfo.getClientProof();
         BigInteger rsaN = rsaProofInfo.getRsaN();
 
-        log.info("\nVector c_j0 used for 2*w_ij*c_j0:\n{}", adjugateMatrix.cols(0, 1));
         for (int i = 0; i < result.length; i++) {
             long v = Math.round(2 * Math.round(adjugateMatrix.get(i, 0)) * skShares.get(i));
             BigInteger exponent = BigInteger.valueOf(v);
-            result[i] = clientProof.modPow(exponent, rsaN);
+            try {
+                result[i] = clientProof.modPow(exponent, rsaN);
+            } catch (ArithmeticException e) {
+                log.info("{}", rsaProofInfo);
+                throw e;
+            }
         }
 
         rsaProofInfo.setRsaDeterminant(squareMatrixOfClient.determinant());

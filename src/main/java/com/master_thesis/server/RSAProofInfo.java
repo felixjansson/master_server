@@ -3,6 +3,7 @@ package com.master_thesis.server;
 import org.ejml.simple.SimpleMatrix;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class RSAProofInfo extends ClientInfo {
 
@@ -42,4 +43,16 @@ public class RSAProofInfo extends ClientInfo {
         this.skShare = skShare;
     }
 
+    @Override
+    public String toString() {
+        return "RSAProofInfo{" +
+                "matrixOfClient=" + matrixOfClient +
+                ", skShare=" + skShare +
+                ", rsaN=" + rsaN +
+                ", clientProof=" + clientProof +
+                ", rsaProofComponent=" + Arrays.toString(rsaProofComponent) +
+                ", rsaDeterminant=" + rsaDeterminant +
+                ", publicKey=" + publicKey +
+                '}';
+    }
 }
