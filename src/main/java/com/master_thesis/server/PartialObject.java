@@ -6,14 +6,15 @@ import java.util.Arrays;
 public class PartialObject {
 
     private BigInteger partialResult;
-    private int transformatorID;
+    private int substationID;
     private int serverID;
     private BigInteger homomorphicPartialProof;
     private ClientInfo[] clientInfos;
+    private int fid;
 
-    public PartialObject(BigInteger partialResult, int transformatorID, int serverID) {
+    public PartialObject(BigInteger partialResult, int substationID, int serverID) {
         this.partialResult = partialResult;
-        this.transformatorID = transformatorID;
+        this.substationID = substationID;
         this.serverID = serverID;
     }
 
@@ -25,12 +26,12 @@ public class PartialObject {
         this.partialResult = partialResult;
     }
 
-    public int getTransformatorID() {
-        return transformatorID;
+    public int getSubstationID() {
+        return substationID;
     }
 
-    public void setTransformatorID(int transformatorID) {
-        this.transformatorID = transformatorID;
+    public void setSubstationID(int substationID) {
+        this.substationID = substationID;
     }
 
     public int getServerID() {
@@ -57,11 +58,19 @@ public class PartialObject {
         this.clientInfos = clientInfos;
     }
 
+    public int getFid() {
+        return fid;
+    }
+
+    public void setFid(int fid) {
+        this.fid = fid;
+    }
+
     @Override
     public String toString() {
         return "PartialObject{" +
                 "partialResult=" + partialResult +
-                ", transformatorID=" + transformatorID +
+                ", substationID=" + substationID +
                 ", serverID=" + serverID +
                 ", homomorphicPartialProof=" + homomorphicPartialProof +
                 ", clientInfos=" + Arrays.toString(clientInfos) +

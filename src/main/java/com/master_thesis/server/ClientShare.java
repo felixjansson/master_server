@@ -1,9 +1,7 @@
 package com.master_thesis.server;
 
 
-import ch.qos.logback.classic.Logger;
 import org.ejml.simple.SimpleMatrix;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -12,12 +10,11 @@ import java.math.BigInteger;
 
 public class ClientShare {
 
-    private static final Logger log = (Logger) LoggerFactory.getLogger(ClientShareController.class);
+    private int fid;
     private BigInteger share;
     private int clientID;
-    private int transformatorID;
+    private int substationID;
     private BigInteger proofComponent;
-    private BigInteger nonce;
     private SimpleMatrix matrixOfClient;
     private SimpleMatrix skShare;
     private int publicKey;
@@ -39,12 +36,12 @@ public class ClientShare {
         this.clientID = clientID;
     }
 
-    public int getTransformatorID() {
-        return transformatorID;
+    public int getSubstationID() {
+        return substationID;
     }
 
-    public void setTransformatorID(int transformatorID) {
-        this.transformatorID = transformatorID;
+    public void setSubstationID(int substationID) {
+        this.substationID = substationID;
     }
 
     public BigInteger getProofComponent() {
@@ -55,20 +52,20 @@ public class ClientShare {
         this.proofComponent = proofComponent;
     }
 
-    public BigInteger getNonce() {
-        return nonce;
-    }
-
-    public void setNonce(BigInteger nonce) {
-        this.nonce = nonce;
-    }
-
     public SimpleMatrix getMatrixOfClient() {
         return matrixOfClient;
     }
 
     public void setMatrixOfClient(byte[] matrixOfClient) {
         this.matrixOfClient = (SimpleMatrix) getObjectFromByteArray(matrixOfClient);
+    }
+
+    public int getFid() {
+        return fid;
+    }
+
+    public void setFid(int fid) {
+        this.fid = fid;
     }
 
     private Object getObjectFromByteArray(byte[] arr) {
@@ -90,21 +87,6 @@ public class ClientShare {
         this.skShare = (SimpleMatrix) getObjectFromByteArray(skShare);
     }
 
-    @Override
-    public String toString() {
-        return "ClientShare{" +
-                "share=" + share +
-                ", clientID=" + clientID +
-                ", transformatorID=" + transformatorID +
-                ", proofComponent=" + proofComponent +
-                ", nonce=" + nonce +
-                ", matrixOfClient=" + matrixOfClient +
-                ", skShare=" + skShare +
-                ", publicKey=" + publicKey +
-                ", rsaN=" + rsaN +
-                '}';
-    }
-
     public int getPublicKey() {
         return publicKey;
     }
@@ -121,4 +103,18 @@ public class ClientShare {
         this.rsaN = new BigInteger(rsaN);
     }
 
+    @Override
+    public String toString() {
+        return "ClientShare{" +
+                "fid=" + fid +
+                ", share=" + share +
+                ", clientID=" + clientID +
+                ", substationID=" + substationID +
+                ", proofComponent=" + proofComponent +
+                ", matrixOfClient=" + matrixOfClient +
+                ", skShare=" + skShare +
+                ", publicKey=" + publicKey +
+                ", rsaN=" + rsaN +
+                '}';
+    }
 }

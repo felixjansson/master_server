@@ -1,92 +1,63 @@
 package com.master_thesis.server;
 
 import java.math.BigInteger;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Buffer {
 
-    private HashMap<Integer, Queue<ClientShare>> buffers;
+    private Map<Integer, Substation> substations;
     private PublicParameters publicParameters;
-    private int transformatorID;
 
-    public Buffer(PublicParameters publicParameters, int transformatorID) {
+    public Buffer(PublicParameters publicParameters) {
         this.publicParameters = publicParameters;
-        this.transformatorID = transformatorID;
-        buffers = new HashMap<>();
+        substations = new HashMap<>();
     }
 
-    public void updateClients() {
-        List<Integer> clientIDs = publicParameters.getClients(transformatorID);
-
-        // Removes all client that are no longer connected to that transformator
-        Set<Integer> keysToRemove = buffers.keySet();
-        keysToRemove.removeIf(Predicate.not(clientIDs::contains));
-
-        // add new clients
-        clientIDs.forEach(id -> buffers.putIfAbsent(id, new LinkedList<>()));
+    public Fid getFid(int substationID, int fid) {
+        return substations.get(substationID).get(fid);
     }
 
     public void putClientShare(ClientShare clientShare) {
-        updateClients();
-        buffers.get(clientShare.getClientID()).add(clientShare);
+
+        substations.putIfAbsent(clientShare.getSubstationID(), new Substation());
+        Substation substation = substations.get(clientShare.getSubstationID());
+        substation.putIfAbsent(clientShare.getFid(), new Fid());
+        Fid fid = substation.get(clientShare.getFid());
+
+        fid.put(clientShare.getClientID(), clientShare);
     }
 
-    public List<BigInteger> getNonces() {
-        return buffers.values().stream()
-                .map(Queue::peek)
-                .filter(Objects::nonNull)
-                .map(ClientShare::getNonce)
-                .collect(Collectors.toList());
+    public boolean canCompute(int substationID, int fid) { // TODO: 2020-02-24 Check with PP how many clients
+        List<Integer> clientIDs = publicParameters.getClients(substationID);
+        return substations.get(substationID).get(fid).keySet().containsAll(clientIDs);
     }
 
-    public List<BigInteger> getProofComponents() {
-        return buffers.values().stream()
-                .map(Queue::peek)
-                .filter(Objects::nonNull)
-                .map(ClientShare::getProofComponent)
-                .collect(Collectors.toList());
+    private class Substation extends HashMap<Integer, Fid> {
     }
 
-    public List<BigInteger> getShares() {
-        return buffers.values().stream()
-                .map(Queue::peek)
-                .filter(Objects::nonNull)
-                .map(ClientShare::getShare)
-                .collect(Collectors.toList());
+    public class Fid extends HashMap<Integer, ClientShare> {
+
+        public List<BigInteger> getShares() {
+            return values().stream().map(ClientShare::getShare).collect(Collectors.toList());
+        }
+
+        public List<RSAProofInfo> getRSAProofInformation() {
+            return values().stream()
+                    .filter(Objects::nonNull)
+                    .map(share -> new RSAProofInfo(
+                            share.getRsaN(),
+                            share.getProofComponent(),
+                            share.getPublicKey(),
+                            share.getMatrixOfClient(),
+                            share.getSkShare()
+                    ))
+                    .collect(Collectors.toList());
+        }
     }
 
-    public void remove() {
-        buffers.values().forEach(Queue::remove);
-    }
-
-    public boolean canCompute() { // TODO: 2020-02-24 Check with PP how many clients
-        updateClients();
-        boolean noEmptyQueues = buffers.values().stream().noneMatch(Queue::isEmpty);
-        return noEmptyQueues;
-    }
-
-    public List<RSAProofInfo> getRSAProofInformation(int transformatorID) {
-        return buffers.values().stream()
-                .map(Queue::peek)
-                .filter(Objects::nonNull)
-                .map(share -> new RSAProofInfo(
-                        share.getRsaN(),
-                        share.getProofComponent(),
-                        share.getPublicKey(),
-                        share.getMatrixOfClient(),
-                        share.getSkShare()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public ClientInfo[] getClientInfo(int transformatorID) {
-        return buffers.values().stream()
-                .map(Queue::peek)
-                .filter(Objects::nonNull)
-                .map(share -> new ClientInfo(share.getProofComponent()))
-                .toArray(ClientInfo[]::new);
-    }
 }
 

@@ -17,19 +17,23 @@ public class PublicParameters {
         serverID = httpAdapter.registerServer();
     }
 
-    public List<Integer> getClients(int transformatorID) {
-        return httpAdapter.getClients(transformatorID);
+    public List<Integer> getClients(int substationID) {
+        return httpAdapter.getClients(substationID);
+    }
+
+    public List<Integer> getClients(int substationID, int fid) {
+        return httpAdapter.getClients(substationID, fid);
     }
 
     public int getServerID() {
         return serverID;
     }
 
-    public BigInteger getFieldBase(int transformatorID) {
-        return httpAdapter.getFieldBase(transformatorID);
+    public BigInteger getFieldBase(int substationID) {
+        return httpAdapter.getFieldBase(substationID);
     }
 
-    public BigInteger getGenerator(int transformatorID) {
-        return httpAdapter.getGenerator(transformatorID);
+    public BigInteger getGenerator(int substationID) {
+        return httpAdapter.getGenerator(substationID);
     }
 }

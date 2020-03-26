@@ -30,8 +30,8 @@ public class HomomorphicHash {
         return hash(result, fieldBase, generator);
     }
 
-    public BigInteger lastClientProofInverse(List<BigInteger> nonces, BigInteger fieldBase, BigInteger generator) {
-        BigInteger nonceSum = nonces.stream().reduce(BigInteger.ZERO, BigInteger::add);
+    public BigInteger lastClientProofInverse(List<BigInteger> nonce, BigInteger fieldBase, BigInteger generator) {
+        BigInteger nonceSum = nonce.stream().reduce(BigInteger.ZERO, BigInteger::add);
         BigInteger inverse = generator.modInverse(fieldBase);
         return inverse.modPow(nonceSum, fieldBase);
     }

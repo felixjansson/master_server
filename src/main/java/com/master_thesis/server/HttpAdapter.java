@@ -58,7 +58,7 @@ public class HttpAdapter {
 
     public int registerServer() throws InterruptedException {
         URI uri = URI.create(String.format(coordinator, "server/register"));
-        JsonNode jsonNode = null;
+        JsonNode jsonNode;
         try {
             jsonNode = objectMapper.readTree(serverURI);
             HttpRequest request = HttpRequest.newBuilder(uri)
@@ -79,24 +79,32 @@ public class HttpAdapter {
     }
 
     @SneakyThrows
-    public List<Integer> getClients(int transformatorID) {
-        URI uri = URI.create(String.format(coordinator, "client/list/" + transformatorID));
+    public List<Integer> getClients(int substationID) {
+        URI uri = URI.create(String.format(coordinator, "client/list/" + substationID));
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return objectMapper.readValue(response.body(), List.class);
     }
 
     @SneakyThrows
-    public BigInteger getFieldBase(int transformatorID) {
-        URI uri = URI.create("http://localhost:4000/api/setup/fieldBase/" + transformatorID);
+    public List<Integer> getClients(int substationID, int fid) {
+        URI uri = URI.create(String.format(coordinator, "client/list/" + substationID + "/" + fid));
+        HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return objectMapper.readValue(response.body(), List.class);
+    }
+
+    @SneakyThrows
+    public BigInteger getFieldBase(int substationID) {
+        URI uri = URI.create("http://localhost:4000/api/setup/fieldBase/" + substationID);
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return new BigInteger(response.body());
     }
 
     @SneakyThrows
-    public BigInteger getGenerator(int transformatorID) {
-        URI uri = URI.create("http://localhost:4000/api/setup/generator/" + transformatorID);
+    public BigInteger getGenerator(int substationID) {
+        URI uri = URI.create("http://localhost:4000/api/setup/generator/" + substationID);
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return new BigInteger(response.body());

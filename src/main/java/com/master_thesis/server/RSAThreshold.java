@@ -12,25 +12,6 @@ import java.util.List;
 public class RSAThreshold extends HomomorphicHash {
     private static final Logger log = (Logger) LoggerFactory.getLogger(HttpAdapter.class);
 
-
-    public ClientInfo[] rsaPartialProof(List<RSAProofInfo> proofInformation, int transformatorID) {
-        return proofInformation.stream()
-                .map(client -> this.rsaPartialProofClient(client, transformatorID))
-                .toArray(ClientInfo[]::new);
-    }
-
-
-    public SimpleMatrix getCofactorMatrix(SimpleMatrix a) {
-        SimpleMatrix cofactor = a.copy();
-        for (int i = 0; i < a.numRows(); i++) {
-            for (int j = 0; j < a.numCols(); j++) {
-                int sign = (i + j) % 2 == 0 ? 1 : -1;
-                cofactor.set(i, j, createSubMatrix(a, i, j).determinant() * sign);
-            }
-        }
-        return cofactor;
-    }
-
     public static SimpleMatrix createSubMatrix(SimpleMatrix matrix, int excluding_row, int excluding_col) {
         SimpleMatrix mat = new SimpleMatrix(matrix.numRows() - 1, matrix.numCols() - 1);
         int r = -1;
@@ -48,7 +29,24 @@ public class RSAThreshold extends HomomorphicHash {
         return mat;
     }
 
-    ClientInfo rsaPartialProofClient(RSAProofInfo rsaProofInfo, int transformatorID) {
+    public ClientInfo[] rsaPartialProof(List<RSAProofInfo> proofInformation, int substationID) {
+        return proofInformation.stream()
+                .map(client -> this.rsaPartialProofClient(client, substationID))
+                .toArray(ClientInfo[]::new);
+    }
+
+    public SimpleMatrix getCofactorMatrix(SimpleMatrix a) {
+        SimpleMatrix cofactor = a.copy();
+        for (int i = 0; i < a.numRows(); i++) {
+            for (int j = 0; j < a.numCols(); j++) {
+                int sign = (i + j) % 2 == 0 ? 1 : -1;
+                cofactor.set(i, j, createSubMatrix(a, i, j).determinant() * sign);
+            }
+        }
+        return cofactor;
+    }
+
+    ClientInfo rsaPartialProofClient(RSAProofInfo rsaProofInfo, int substationID) {
         SimpleMatrix matrixOfClient = rsaProofInfo.getMatrixOfClient();
 
         // Create txt
