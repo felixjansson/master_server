@@ -32,7 +32,7 @@ public class Buffer {
     }
 
     public boolean canCompute(int substationID, int fid) { // TODO: 2020-02-24 Check with PP how many clients
-        List<Integer> clientIDs = publicParameters.getClients(substationID);
+        List<Integer> clientIDs = publicParameters.getClients(substationID, fid);
         return substations.get(substationID).get(fid).keySet().containsAll(clientIDs);
     }
 
