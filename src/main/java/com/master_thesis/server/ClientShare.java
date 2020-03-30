@@ -100,7 +100,9 @@ public class ClientShare {
     }
 
     public void setRsaN(String rsaN) {
-        this.rsaN = new BigInteger(rsaN);
+        if (rsaN != null) {
+            this.rsaN = new BigInteger(rsaN);
+        }
     }
 
     @Override
