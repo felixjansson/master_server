@@ -9,7 +9,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 @Component
-public class RSAThreshold extends HomomorphicHash {
+public class RSAThreshold {
     private static final Logger log = (Logger) LoggerFactory.getLogger(HttpAdapter.class);
 
     public static SimpleMatrix createSubMatrix(SimpleMatrix matrix, int excluding_row, int excluding_col) {
@@ -27,6 +27,10 @@ public class RSAThreshold extends HomomorphicHash {
             }
         }
         return mat;
+    }
+
+    public BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase) {
+        return shares.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
     }
 
     public ClientInfo[] rsaPartialProof(List<RSAProofInfo> proofInformation, int substationID) {

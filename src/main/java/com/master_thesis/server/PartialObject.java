@@ -12,8 +12,7 @@ public class PartialObject {
     private ClientInfo[] clientInfos;
     private int fid;
 
-    public PartialObject(BigInteger partialResult, int substationID, int serverID) {
-        this.partialResult = partialResult;
+    public PartialObject(int substationID, int serverID) {
         this.substationID = substationID;
         this.serverID = serverID;
     }
@@ -74,6 +73,7 @@ public class PartialObject {
                 ", serverID=" + serverID +
                 ", homomorphicPartialProof=" + homomorphicPartialProof +
                 ", clientInfos=" + Arrays.toString(clientInfos) +
+                ", fid=" + fid +
                 '}';
     }
 }
