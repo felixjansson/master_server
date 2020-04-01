@@ -1,4 +1,4 @@
-package com.master_thesis.server;
+package com.master_thesis.server.util;
 
 import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,19 +30,23 @@ public class HttpAdapter {
     public HttpAdapter(ObjectMapper objectMapper, Environment environment) {
         this.objectMapper = objectMapper;
         String port = environment.getProperty("server.port");
-        serverURI = "{\"uri\":\"http://localhost:" + port + "/api/client-share\"}";
+        serverURI = "{\"uri\":\"http://localhost:" + port + "/api\"}";
         coordinator = "http://localhost:4000/api/%s";
     }
 
-    public void send(URI uri, PartialObject information) throws IOException, InterruptedException {
+    public void send(URI uri, Object information) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(uri)
                 .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(information))).build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        log.debug("To {}: {}", uri, objectMapper.writeValueAsString(information));
+        if (!response.body().isEmpty()) {
+            log.debug("Got answer: {}", response.body());
+        }
     }
 
-    public void sendWithTimeout(URI uri, PartialObject information, int timeoutMs) throws InterruptedException {
+    public void sendWithTimeout(URI uri, Object information, int timeoutMs) {
         boolean sendFailed = true;
         while (sendFailed) {
             try {
@@ -50,10 +54,13 @@ public class HttpAdapter {
                 sendFailed = false;
             } catch (InterruptedException | IOException e) {
                 log.error("Sending did not work, sleeping for {}ms. {}", timeoutMs, e.getMessage());
-                Thread.sleep(timeoutMs);
+                try {
+                    Thread.sleep(timeoutMs);
+                } catch (InterruptedException ex) {
+                    log.error("Could not sleep while trying to send message. {}", ex.getMessage());
+                }
             }
         }
-
     }
 
     public int registerServer() throws InterruptedException {

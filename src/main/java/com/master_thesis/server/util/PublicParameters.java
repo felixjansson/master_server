@@ -1,5 +1,6 @@
-package com.master_thesis.server;
+package com.master_thesis.server.util;
 
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,11 @@ public class PublicParameters {
     @Autowired
     public PublicParameters(HttpAdapter httpAdapter) throws InterruptedException {
         this.httpAdapter = httpAdapter;
+        serverID = httpAdapter.registerServer();
+    }
+
+    @SneakyThrows
+    public void reRegisterServer() {
         serverID = httpAdapter.registerServer();
     }
 

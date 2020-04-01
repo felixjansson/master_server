@@ -1,0 +1,56 @@
+package com.master_thesis.server.data;
+
+public abstract class ComputationData {
+
+    private final Construction construction;
+    private int fid, substationID, id;
+
+    protected ComputationData(Construction construction) {
+        this.construction = construction;
+    }
+
+    public ComputationData(int substationID, int fid, int id, Construction construction) {
+        this.fid = fid;
+        this.substationID = substationID;
+        this.id = id;
+        this.construction = construction;
+    }
+
+    public int getFid() {
+        return fid;
+    }
+
+    public void setFid(int fid) {
+        this.fid = fid;
+    }
+
+    public int getSubstationID() {
+        return substationID;
+    }
+
+    public void setSubstationID(int substationID) {
+        this.substationID = substationID;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Construction getConstruction() {
+        return construction;
+    }
+
+    @Override
+    public String toString() {
+        return "ComputationData{" +
+                "fid=" + fid +
+                ", substationID=" + substationID +
+                ", id=" + id +
+                ", construction=" + construction +
+                '}';
+    }
+}

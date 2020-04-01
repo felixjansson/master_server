@@ -1,12 +1,17 @@
 package com.master_thesis.server;
 
 import ch.qos.logback.classic.Logger;
+import com.master_thesis.server.data.RSAIncomingData;
+import com.master_thesis.server.data.RSAOutgoingData;
+import com.master_thesis.server.util.HttpAdapter;
 import org.ejml.simple.SimpleMatrix;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class RSAThreshold {
@@ -33,10 +38,9 @@ public class RSAThreshold {
         return shares.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
     }
 
-    public ClientInfo[] rsaPartialProof(List<RSAProofInfo> proofInformation, int substationID) {
+    public Map<Integer, RSAOutgoingData.ProofData> rsaPartialProof(List<RSAIncomingData> proofInformation) {
         return proofInformation.stream()
-                .map(client -> this.rsaPartialProofClient(client, substationID))
-                .toArray(ClientInfo[]::new);
+                .collect(Collectors.toMap(RSAIncomingData::getId, this::rsaPartialProofClient));
     }
 
     public SimpleMatrix getCofactorMatrix(SimpleMatrix a) {
@@ -50,7 +54,7 @@ public class RSAThreshold {
         return cofactor;
     }
 
-    ClientInfo rsaPartialProofClient(RSAProofInfo rsaProofInfo, int substationID) {
+    RSAOutgoingData.ProofData rsaPartialProofClient(RSAIncomingData rsaProofInfo) {
         SimpleMatrix matrixOfClient = rsaProofInfo.getMatrixOfClient();
 
         // Create txt
@@ -63,7 +67,7 @@ public class RSAThreshold {
         SimpleMatrix skShares = rsaProofInfo.getSkShare().rows(0, t);
 
         BigInteger[] result = new BigInteger[t];
-        BigInteger clientProof = rsaProofInfo.getClientProof();
+        BigInteger clientProof = rsaProofInfo.getProofComponent();
         BigInteger rsaN = rsaProofInfo.getRsaN();
 
         for (int i = 0; i < result.length; i++) {
@@ -77,8 +81,6 @@ public class RSAThreshold {
             }
         }
 
-        rsaProofInfo.setRsaDeterminant(squareMatrixOfClient.determinant());
-        rsaProofInfo.setRsaProofComponent(result);
-        return new ClientInfo(rsaProofInfo);
+        return new RSAOutgoingData.ProofData(rsaN, result, squareMatrixOfClient.determinant(), clientProof);
     }
 }
