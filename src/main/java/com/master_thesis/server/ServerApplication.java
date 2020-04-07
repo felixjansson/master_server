@@ -29,34 +29,36 @@ public class ServerApplication {
     private static final Logger log = (Logger) LoggerFactory.getLogger(ServerApplication.class);
     private final URI verifier = URI.create("http://localhost:3000/api/server/");
     private PublicParameters publicParameters;
-    private HomomorphicHash secretSharingHomomorphicHash;
-    private RSAThreshold secretSharingRSAThreshold;
+    private HomomorphicHash homomorphicHash;
+    private RSAThreshold rsaThreshold;
+    private LinearSignature linearSignature;
     private HttpAdapter httpAdapter;
     private Buffer buffer;
     private int serverID;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    public ServerApplication(PublicParameters publicParameters, HomomorphicHash secretSharingHomomorphicHash, RSAThreshold secretSharingRSAThreshold, HttpAdapter httpAdapter) {
+    public ServerApplication(PublicParameters publicParameters, HomomorphicHash homomorphicHash, RSAThreshold rsaThreshold, LinearSignature linearSignature, HttpAdapter httpAdapter) {
         this.publicParameters = publicParameters;
-        this.secretSharingHomomorphicHash = secretSharingHomomorphicHash;
-        this.secretSharingRSAThreshold = secretSharingRSAThreshold;
+        this.homomorphicHash = homomorphicHash;
+        this.rsaThreshold = rsaThreshold;
+        this.linearSignature = linearSignature;
         this.httpAdapter = httpAdapter;
         this.buffer = new Buffer(publicParameters);
         this.serverID = publicParameters.getServerID();
         new Thread(() -> {
             boolean running = true;
             while (running) {
-                System.out.println("Enter r to re-register server");
+                System.out.println("Enter r to re-register server, [l]ist servers");
                 Scanner input = new Scanner(System.in);
                 switch (input.next()) {
                     case "r":
                         publicParameters.reRegisterServer();
                         serverID = publicParameters.getServerID();
                         break;
-                    case "q":
-                        running = false;
-                        break;
+                    case "l":
+                        System.out.println(publicParameters.getServerList());
+
                 }
             }
 
@@ -82,6 +84,15 @@ public class ServerApplication {
         }
     }
 
+    @PostMapping(value = "/linear-data")
+    void receiveLinearShare(@RequestBody LinearIncomingData dataFromClient){
+        log.debug("Received share: {} ", dataFromClient);
+        buffer.putClientShare(dataFromClient);
+        if (buffer.canCompute(dataFromClient.getSubstationID(), dataFromClient.getFid())) {
+            new Thread(() -> performComputations(dataFromClient.getSubstationID(), dataFromClient.getFid())).start();
+        }
+    }
+
     private void performComputations(int substationID, int fid) {
         log.info("=== Computing partial information for Substation {} fid {} === ", substationID, fid);
         Buffer.Fid fidData = buffer.getFid(substationID, fid);
@@ -92,22 +103,30 @@ public class ServerApplication {
 
         Construction construction = fidData.getConstruction();
 
-//      Compute proofs for HomomorphicHash construction
+//      Compute partial result and proof for HomomorphicHash construction
         if (construction.equals(Construction.HASH)) {
             List<HashIncomingData> computationData = fidData.values().stream().map(v -> (HashIncomingData) v).collect(Collectors.toList());
             List<BigInteger> shares = computationData.stream().map(HashIncomingData::getSecretShare).collect(Collectors.toList());
-            BigInteger partialProof = secretSharingHomomorphicHash.homomorphicPartialProof(shares, fieldBase, generator);
-            BigInteger partialResult = secretSharingHomomorphicHash.partialEval(shares, fieldBase);
+            BigInteger partialProof = homomorphicHash.homomorphicPartialProof(shares, fieldBase, generator);
+            BigInteger partialResult = homomorphicHash.partialEval(shares, fieldBase);
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.HASH.getEndpoint()), new HashOutgoingData(substationID, fid, serverID, partialResult, partialProof), 3000);
         }
 
-//      Compute proofs for RSAThreshold construction
+//      Compute partial result and proof for RSAThreshold construction
         if (construction.equals(Construction.RSA)) {
             List<RSAIncomingData> computationData = fidData.values().stream().map(v -> (RSAIncomingData) v).collect(Collectors.toList());
             List<BigInteger> shares = computationData.stream().map(RSAIncomingData::getShare).collect(Collectors.toList());
-            BigInteger partialResult = secretSharingRSAThreshold.partialEval(shares, fieldBase);
-            Map<Integer, RSAOutgoingData.ProofData> partialProofs = secretSharingRSAThreshold.rsaPartialProof(computationData);
+            BigInteger partialResult = rsaThreshold.partialEval(shares, fieldBase);
+            Map<Integer, RSAOutgoingData.ProofData> partialProofs = rsaThreshold.rsaPartialProof(computationData);
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.RSA.getEndpoint()), new RSAOutgoingData(substationID, fid, serverID, partialResult, partialProofs), 3000);
+        }
+
+//      Compute partial result for LinearSignature construction
+        if (construction.equals(Construction.LINEAR)){
+            List<LinearIncomingData> computationData = fidData.values().stream().map(v -> (LinearIncomingData) v).collect(Collectors.toList());
+            List<BigInteger> shares = computationData.stream().map(LinearIncomingData::getSecretShare).collect(Collectors.toList());
+            BigInteger partialResult = linearSignature.partialEval(shares, fieldBase);
+            httpAdapter.sendWithTimeout(verifier.resolve(Construction.LINEAR.getEndpoint()), new LinearOutgoingData(substationID, fid, serverID, partialResult), 3000);
         }
     }
 

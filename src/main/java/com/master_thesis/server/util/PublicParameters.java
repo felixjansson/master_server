@@ -42,4 +42,8 @@ public class PublicParameters {
     public BigInteger getGenerator(int substationID) {
         return httpAdapter.getGenerator(substationID);
     }
+
+    public String getServerList() {
+        return httpAdapter.getServerList();
+    }
 }

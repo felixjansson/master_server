@@ -1,6 +1,7 @@
 package com.master_thesis.server.util;
 
 import ch.qos.logback.classic.Logger;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -48,12 +49,14 @@ public class HttpAdapter {
 
     public void sendWithTimeout(URI uri, Object information, int timeoutMs) {
         boolean sendFailed = true;
+        int tries = 10;
         while (sendFailed) {
             try {
                 send(uri, information);
                 sendFailed = false;
             } catch (InterruptedException | IOException e) {
                 log.error("Sending did not work, sleeping for {}ms. {}", timeoutMs, e.getMessage());
+                sendFailed = --tries > 0;
                 try {
                     Thread.sleep(timeoutMs);
                 } catch (InterruptedException ex) {
@@ -117,4 +120,11 @@ public class HttpAdapter {
         return new BigInteger(response.body());
     }
 
+    @SneakyThrows
+    public String getServerList() {
+        HttpRequest httpRequest = HttpRequest.newBuilder(URI.create("http://localhost:4000/api/server/list"))
+                .GET().build();
+        HttpResponse<String> response = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
 }
