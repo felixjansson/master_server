@@ -25,8 +25,11 @@ public class Buffer {
         Substation substation = substations.get(clientShare.getSubstationID());
         substation.putIfAbsent(clientShare.getFid(), new Fid(clientShare.getConstruction()));
         Fid fid = substation.get(clientShare.getFid());
-
-        fid.put(clientShare.getId(), clientShare);
+        if (fid.construction.equals(clientShare.getConstruction())){
+            fid.put(clientShare.getId(), clientShare);
+        } else {
+            throw new RuntimeException(String.format("[FID %d] got client data from different construction", clientShare.getFid()));
+        }
     }
 
     public boolean canCompute(int substationID, int fid) { // TODO: 2020-02-24 Check with PP how many clients
