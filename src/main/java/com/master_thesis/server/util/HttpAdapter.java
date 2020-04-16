@@ -89,14 +89,6 @@ public class HttpAdapter {
     }
 
     @SneakyThrows
-    public List<Integer> getClients(int substationID) {
-        URI uri = URI.create(String.format(coordinator, "client/list/" + substationID));
-        HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return objectMapper.readValue(response.body(), List.class);
-    }
-
-    @SneakyThrows
     public List<Integer> getClients(int substationID, int fid) {
         URI uri = URI.create(String.format(coordinator, "client/list/" + substationID + "/" + fid));
         HttpRequest request = HttpRequest.newBuilder(uri).GET().build();

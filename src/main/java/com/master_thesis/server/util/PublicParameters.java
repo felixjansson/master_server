@@ -23,10 +23,6 @@ public class PublicParameters {
         serverID = httpAdapter.registerServer();
     }
 
-    public List<Integer> getClients(int substationID) {
-        return httpAdapter.getClients(substationID);
-    }
-
     public List<Integer> getClients(int substationID, int fid) {
         return httpAdapter.getClients(substationID, fid);
     }
