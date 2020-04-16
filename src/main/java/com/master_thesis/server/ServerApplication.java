@@ -32,17 +32,19 @@ public class ServerApplication {
     private HomomorphicHash homomorphicHash;
     private RSAThreshold rsaThreshold;
     private LinearSignature linearSignature;
+    private NonceDistribution nonceDistribution;
     private HttpAdapter httpAdapter;
     private Buffer buffer;
     private int serverID;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    public ServerApplication(PublicParameters publicParameters, HomomorphicHash homomorphicHash, RSAThreshold rsaThreshold, LinearSignature linearSignature, HttpAdapter httpAdapter) {
+    public ServerApplication(PublicParameters publicParameters, HomomorphicHash homomorphicHash, RSAThreshold rsaThreshold, LinearSignature linearSignature, NonceDistribution nonceDistribution, HttpAdapter httpAdapter) {
         this.publicParameters = publicParameters;
         this.homomorphicHash = homomorphicHash;
         this.rsaThreshold = rsaThreshold;
         this.linearSignature = linearSignature;
+        this.nonceDistribution = nonceDistribution;
         this.httpAdapter = httpAdapter;
         this.buffer = new Buffer(publicParameters);
         this.serverID = publicParameters.getServerID();
@@ -85,7 +87,16 @@ public class ServerApplication {
     }
 
     @PostMapping(value = "/linear-data")
-    void receiveLinearShare(@RequestBody LinearIncomingData dataFromClient){
+    void receiveLinearShare(@RequestBody LinearIncomingData dataFromClient) {
+        log.debug("Received share: {} ", dataFromClient);
+        buffer.putClientShare(dataFromClient);
+        if (buffer.canCompute(dataFromClient.getSubstationID(), dataFromClient.getFid())) {
+            new Thread(() -> performComputations(dataFromClient.getSubstationID(), dataFromClient.getFid())).start();
+        }
+    }
+
+    @PostMapping(value = "/nonce-data")
+    void receiveNonceDistributionShare(@RequestBody NonceIncomingData dataFromClient) {
         log.debug("Received share: {} ", dataFromClient);
         buffer.putClientShare(dataFromClient);
         if (buffer.canCompute(dataFromClient.getSubstationID(), dataFromClient.getFid())) {
@@ -122,11 +133,23 @@ public class ServerApplication {
         }
 
 //      Compute partial result for LinearSignature construction
-        if (construction.equals(Construction.LINEAR)){
+        if (construction.equals(Construction.LINEAR)) {
             List<LinearIncomingData> computationData = fidData.values().stream().map(v -> (LinearIncomingData) v).collect(Collectors.toList());
             List<BigInteger> shares = computationData.stream().map(LinearIncomingData::getSecretShare).collect(Collectors.toList());
             BigInteger partialResult = linearSignature.partialEval(shares, fieldBase);
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.LINEAR.getEndpoint()), new LinearOutgoingData(substationID, fid, serverID, partialResult), 3000);
+        }
+
+//      Compute partial result for NonceDistribution construction
+        if (construction.equals(Construction.NONCE)) {
+            List<NonceIncomingData> computationData = fidData.values().stream().map(v -> (NonceIncomingData) v).collect(Collectors.toList());
+            List<BigInteger> secretShares = computationData.stream().map(NonceIncomingData::getSecretShare).collect(Collectors.toList());
+            List<BigInteger> nonceShares = computationData.stream().map(NonceIncomingData::getNonceShare).collect(Collectors.toList());
+            BigInteger partialProof = nonceDistribution.partialProof(secretShares, fieldBase, generator);
+            BigInteger partialNonce = nonceDistribution.partialNonce(nonceShares);
+            BigInteger partialResult = nonceDistribution.partialEval(secretShares);
+            httpAdapter.sendWithTimeout(verifier.resolve(Construction.NONCE.getEndpoint()),
+                    new NonceOutgoingData(substationID, fid, serverID, partialResult, partialProof, partialNonce), 3000);
         }
     }
 
