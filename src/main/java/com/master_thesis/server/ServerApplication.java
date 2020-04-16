@@ -119,7 +119,7 @@ public class ServerApplication {
             List<HashIncomingData> computationData = fidData.values().stream().map(v -> (HashIncomingData) v).collect(Collectors.toList());
             List<BigInteger> shares = computationData.stream().map(HashIncomingData::getSecretShare).collect(Collectors.toList());
             BigInteger partialProof = homomorphicHash.homomorphicPartialProof(shares, fieldBase, generator);
-            BigInteger partialResult = homomorphicHash.partialEval(shares, fieldBase);
+            BigInteger partialResult = homomorphicHash.partialEval(shares);
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.HASH.getEndpoint()), new HashOutgoingData(substationID, fid, serverID, partialResult, partialProof), 3000);
         }
 
@@ -127,7 +127,7 @@ public class ServerApplication {
         if (construction.equals(Construction.RSA)) {
             List<RSAIncomingData> computationData = fidData.values().stream().map(v -> (RSAIncomingData) v).collect(Collectors.toList());
             List<BigInteger> shares = computationData.stream().map(RSAIncomingData::getShare).collect(Collectors.toList());
-            BigInteger partialResult = rsaThreshold.partialEval(shares, fieldBase);
+            BigInteger partialResult = rsaThreshold.partialEval(shares);
             Map<Integer, RSAOutgoingData.ProofData> partialProofs = rsaThreshold.rsaPartialProof(computationData);
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.RSA.getEndpoint()), new RSAOutgoingData(substationID, fid, serverID, partialResult, partialProofs), 3000);
         }
@@ -136,7 +136,7 @@ public class ServerApplication {
         if (construction.equals(Construction.LINEAR)) {
             List<LinearIncomingData> computationData = fidData.values().stream().map(v -> (LinearIncomingData) v).collect(Collectors.toList());
             List<BigInteger> shares = computationData.stream().map(LinearIncomingData::getSecretShare).collect(Collectors.toList());
-            BigInteger partialResult = linearSignature.partialEval(shares, fieldBase);
+            BigInteger partialResult = linearSignature.partialEval(shares);
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.LINEAR.getEndpoint()), new LinearOutgoingData(substationID, fid, serverID, partialResult), 3000);
         }
 

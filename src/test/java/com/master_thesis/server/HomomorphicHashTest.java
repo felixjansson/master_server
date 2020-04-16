@@ -28,18 +28,9 @@ class HomomorphicHashTest {
     }
 
     @Test
-    void lastClientProofEquals(){
-        List<BigInteger> nonces = Stream.of(1,4,5,2,1).map(BigInteger::valueOf).collect(Collectors.toList());
-        BigInteger lastClientProof = homomorphicHash.lastClientProof(nonces, fieldBase, generator);
-        BigInteger lastClientProof2 = homomorphicHash.lastClientProofInverse(nonces, fieldBase, generator);
-        assertEquals(lastClientProof2, lastClientProof);
-
-    }
-
-    @Test
     void partialEvalTest(){
         List<BigInteger> shares = Stream.of(1,4,5,2,1,34).map(BigInteger::valueOf).collect(Collectors.toList());
-        BigInteger partialResult = homomorphicHash.partialEval(shares, fieldBase);
+        BigInteger partialResult = homomorphicHash.partialEval(shares);
         assertEquals(BigInteger.valueOf(5), partialResult);
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 public class LinearSignature {
 
-    public BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase) {
-        return shares.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
+    public BigInteger partialEval(List<BigInteger> shares) {
+        return shares.stream().reduce(BigInteger.ZERO, BigInteger::add);
     }
 }

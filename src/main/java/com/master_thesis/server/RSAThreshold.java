@@ -34,8 +34,8 @@ public class RSAThreshold {
         return mat;
     }
 
-    public BigInteger partialEval(List<BigInteger> shares, BigInteger fieldBase) {
-        return shares.stream().reduce(BigInteger.ZERO, BigInteger::add).mod(fieldBase);
+    public BigInteger partialEval(List<BigInteger> shares) {
+        return shares.stream().reduce(BigInteger.ZERO, BigInteger::add);
     }
 
     public Map<Integer, RSAOutgoingData.ProofData> rsaPartialProof(List<RSAIncomingData> proofInformation) {
