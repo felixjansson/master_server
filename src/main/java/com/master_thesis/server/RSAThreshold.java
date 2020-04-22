@@ -61,7 +61,7 @@ public class RSAThreshold {
         int t = matrixOfClient.numCols();
         SimpleMatrix squareMatrixOfClient = matrixOfClient.rows(0, t); // TODO: 2020-03-11 Handle when server < t
 
-        SimpleMatrix adjugateMatrix = getCofactorMatrix(squareMatrixOfClient);
+        SimpleMatrix adjugateMatrix = getCofactorMatrix(squareMatrixOfClient).transpose();
 
         // Find t rows from skShares
         SimpleMatrix skShares = rsaProofInfo.getSkShare().rows(0, t);
@@ -71,7 +71,7 @@ public class RSAThreshold {
         BigInteger rsaN = rsaProofInfo.getRsaN();
 
         for (int i = 0; i < result.length; i++) {
-            long v = Math.round(2 * Math.round(adjugateMatrix.get(i, 0)) * skShares.get(i));
+            long v = Math.round(2 * Math.round(adjugateMatrix.get(0, i)) * skShares.get(i));
             BigInteger exponent = BigInteger.valueOf(v);
             try {
                 result[i] = clientProof.modPow(exponent, rsaN);
@@ -80,7 +80,6 @@ public class RSAThreshold {
                 throw e;
             }
         }
-
         return new RSAOutgoingData.ProofData(rsaN, result, squareMatrixOfClient.determinant(), clientProof);
     }
 }
