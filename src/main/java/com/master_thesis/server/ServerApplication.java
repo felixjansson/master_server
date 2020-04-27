@@ -26,13 +26,16 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(value = "/api")
 public class ServerApplication {
+
+    // ******************************************
+    // Here we define variables that will be used in the different constructions and for communication.
+
     private static final Logger log = (Logger) LoggerFactory.getLogger(ServerApplication.class);
     private final URI verifier = URI.create("http://localhost:3000/api/server/");
     private PublicParameters publicParameters;
     private HomomorphicHash homomorphicHash;
     private RSAThreshold rsaThreshold;
     private LinearSignature linearSignature;
-    private NonceDistribution nonceDistribution;
     private HttpAdapter httpAdapter;
     private Buffer buffer;
     private int serverID;
@@ -44,7 +47,6 @@ public class ServerApplication {
         this.homomorphicHash = homomorphicHash;
         this.rsaThreshold = rsaThreshold;
         this.linearSignature = linearSignature;
-        this.nonceDistribution = nonceDistribution;
         this.httpAdapter = httpAdapter;
         this.buffer = new Buffer(publicParameters);
         this.serverID = publicParameters.getServerID();
@@ -66,6 +68,80 @@ public class ServerApplication {
 
         }).start();
     }
+
+    // ******************************************
+
+    /**
+     * This is the function that will call all computations for the server from the paper.
+     * Note that not all constructions are called every time.
+     * @param substationID the substation the computation is performed for.
+     * @param fid id for the computation.
+     */
+    private void performComputations(int substationID, int fid) {
+        log.info("=== Computing partial information for Substation {} fid {} === ", substationID, fid);
+        Buffer.Fid fidData = buffer.getFid(substationID, fid);
+
+//      Compute all common operations
+        BigInteger fieldBase = publicParameters.getFieldBase(substationID);
+        BigInteger generator = publicParameters.getGenerator(substationID);
+
+        Construction construction = fidData.getConstruction();
+
+//      Compute partial result and proof for Homomorphic Hash construction
+        if (construction.equals(Construction.HASH)) {
+            // We retrieve all data related to this computation of the homomorphic hash construction.
+            List<HashIncomingData> computationData = fidData.values().stream().map(v -> (HashIncomingData) v).collect(Collectors.toList());
+            List<BigInteger> shares = computationData.stream().map(HashIncomingData::getSecretShare).collect(Collectors.toList());
+
+            // Compute the partial proof function from the shares.
+            BigInteger partialProof = homomorphicHash.partialProof(shares, fieldBase, generator);
+
+            // Compute the final eval function from the shares.
+            BigInteger partialResult = homomorphicHash.partialEval(shares);
+
+            // Make the result of both computations available to others by sending it to the verifier.
+            httpAdapter.sendWithTimeout(verifier.resolve(Construction.HASH.getEndpoint()), new HashOutgoingData(substationID, fid, serverID, partialResult, partialProof), 3000);
+        }
+
+//      Compute partial result and proof for Threshold Signature construction
+        if (construction.equals(Construction.RSA)) {
+            // We retrieve all data related to this computation of the Threshold Signature construction.
+            List<RSAIncomingData> computationData = fidData.values().stream().map(v -> (RSAIncomingData) v).collect(Collectors.toList());
+            List<BigInteger> shares = computationData.stream().map(RSAIncomingData::getShare).collect(Collectors.toList());
+
+            // Compute the partial proof function for Threshold Signature construction from the paper.
+            Map<Integer, RSAOutgoingData.ProofData> partialProofs = rsaThreshold.partialProof(computationData);
+
+            // Compute the final eval function from the shares.
+            BigInteger partialResult = rsaThreshold.partialEval(shares);
+
+            // Make the result of both computations available to others by sending it to the verifier.
+            httpAdapter.sendWithTimeout(verifier.resolve(Construction.RSA.getEndpoint()), new RSAOutgoingData(substationID, fid, serverID, partialResult, partialProofs), 3000);
+        }
+
+//      Compute partial result for Linear Signature construction
+        if (construction.equals(Construction.LINEAR)) {
+            // We retrieve all data related to this computation of the Linear Signature construction.
+            List<LinearIncomingData> computationData = fidData.values().stream().map(v -> (LinearIncomingData) v).collect(Collectors.toList());
+            List<BigInteger> shares = computationData.stream().map(LinearIncomingData::getSecretShare).collect(Collectors.toList());
+
+            // Compute the partial proof function from the shares using the Linear Signature construction.
+            BigInteger partialResult = linearSignature.partialEval(shares);
+
+            // Make the result of both computations available to others by sending it to the verifier.
+            httpAdapter.sendWithTimeout(verifier.resolve(Construction.LINEAR.getEndpoint()), new LinearOutgoingData(substationID, fid, serverID, partialResult), 3000);
+        }
+
+    }
+
+
+    public static void main(String[] args) {
+        SpringApplication.run(ServerApplication.class, args);
+    }
+
+
+    // ******************************************
+    // The following functions are there to receive data and when every client has sent their data a computation is started.
 
     @SneakyThrows
     @PostMapping(value = "/hash-data")
@@ -104,58 +180,5 @@ public class ServerApplication {
         }
     }
 
-    private void performComputations(int substationID, int fid) {
-        log.info("=== Computing partial information for Substation {} fid {} === ", substationID, fid);
-        Buffer.Fid fidData = buffer.getFid(substationID, fid);
-
-//      Compute all common operations
-        BigInteger fieldBase = publicParameters.getFieldBase(substationID);
-        BigInteger generator = publicParameters.getGenerator(substationID);
-
-        Construction construction = fidData.getConstruction();
-
-//      Compute partial result and proof for HomomorphicHash construction
-        if (construction.equals(Construction.HASH)) {
-            List<HashIncomingData> computationData = fidData.values().stream().map(v -> (HashIncomingData) v).collect(Collectors.toList());
-            List<BigInteger> shares = computationData.stream().map(HashIncomingData::getSecretShare).collect(Collectors.toList());
-            BigInteger partialProof = homomorphicHash.homomorphicPartialProof(shares, fieldBase, generator);
-            BigInteger partialResult = homomorphicHash.partialEval(shares);
-            httpAdapter.sendWithTimeout(verifier.resolve(Construction.HASH.getEndpoint()), new HashOutgoingData(substationID, fid, serverID, partialResult, partialProof), 3000);
-        }
-
-//      Compute partial result and proof for RSAThreshold construction
-        if (construction.equals(Construction.RSA)) {
-            List<RSAIncomingData> computationData = fidData.values().stream().map(v -> (RSAIncomingData) v).collect(Collectors.toList());
-            List<BigInteger> shares = computationData.stream().map(RSAIncomingData::getShare).collect(Collectors.toList());
-            BigInteger partialResult = rsaThreshold.partialEval(shares);
-            Map<Integer, RSAOutgoingData.ProofData> partialProofs = rsaThreshold.rsaPartialProof(computationData);
-            httpAdapter.sendWithTimeout(verifier.resolve(Construction.RSA.getEndpoint()), new RSAOutgoingData(substationID, fid, serverID, partialResult, partialProofs), 3000);
-        }
-
-//      Compute partial result for LinearSignature construction
-        if (construction.equals(Construction.LINEAR)) {
-            List<LinearIncomingData> computationData = fidData.values().stream().map(v -> (LinearIncomingData) v).collect(Collectors.toList());
-            List<BigInteger> shares = computationData.stream().map(LinearIncomingData::getSecretShare).collect(Collectors.toList());
-            BigInteger partialResult = linearSignature.partialEval(shares);
-            httpAdapter.sendWithTimeout(verifier.resolve(Construction.LINEAR.getEndpoint()), new LinearOutgoingData(substationID, fid, serverID, partialResult), 3000);
-        }
-
-//      Compute partial result for NonceDistribution construction
-        if (construction.equals(Construction.NONCE)) {
-            List<NonceIncomingData> computationData = fidData.values().stream().map(v -> (NonceIncomingData) v).collect(Collectors.toList());
-            List<BigInteger> secretShares = computationData.stream().map(NonceIncomingData::getSecretShare).collect(Collectors.toList());
-            List<BigInteger> nonceShares = computationData.stream().map(NonceIncomingData::getNonceShare).collect(Collectors.toList());
-            BigInteger partialProof = nonceDistribution.partialProof(secretShares, fieldBase, generator);
-            BigInteger partialNonce = nonceDistribution.partialNonce(nonceShares);
-            BigInteger partialResult = nonceDistribution.partialEval(secretShares);
-            httpAdapter.sendWithTimeout(verifier.resolve(Construction.NONCE.getEndpoint()),
-                    new NonceOutgoingData(substationID, fid, serverID, partialResult, partialProof, partialNonce), 3000);
-        }
-    }
-
-
-    public static void main(String[] args) {
-        SpringApplication.run(ServerApplication.class, args);
-    }
 
 }

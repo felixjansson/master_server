@@ -11,11 +11,21 @@ import java.util.List;
 public class HomomorphicHash {
 
 
+    /**
+     * This is the partial Eval function from the Homomorphic Hash based construction.
+     * @param shares a list of all secret shares that is given to this server.
+     * @return The sum of all shares (y_j)
+     */
     public BigInteger partialEval(List<BigInteger> shares) {
         return shares.stream().reduce(BigInteger.ZERO, BigInteger::add);
     }
 
-    public BigInteger homomorphicPartialProof(List<BigInteger> shares, BigInteger fieldBase, BigInteger generator) {
+    /**
+     * This is the partial proof function from the Homomorphic Hash based construction.
+     * @param shares a list of all secret shares that is given to this server.
+     * @return The partial proof, this is sigma_j in the paper.
+     */
+    public BigInteger partialProof(List<BigInteger> shares, BigInteger fieldBase, BigInteger generator) {
         BigInteger shareSum = shares.stream().reduce(BigInteger.ZERO, BigInteger::add);
         return hash(shareSum, fieldBase, generator);
     }
