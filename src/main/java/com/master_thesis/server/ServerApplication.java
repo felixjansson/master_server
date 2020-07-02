@@ -57,6 +57,7 @@ public class ServerApplication {
             boolean running = true;
             while (running) {
                 System.out.println("Enter r to re-register server, [l]ist servers");
+                System.out.println("==== Type \"q\" and then Enter to exit ====");
                 Scanner input = new Scanner(System.in);
                 switch (input.next()) {
                     case "r":
@@ -65,7 +66,8 @@ public class ServerApplication {
                         break;
                     case "l":
                         System.out.println(publicParameters.getServerList());
-
+                    case "q":
+                        System.exit(0);
                 }
             }
 
