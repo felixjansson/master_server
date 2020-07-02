@@ -8,6 +8,7 @@ import com.master_thesis.server.util.PublicParameters;
 import lombok.SneakyThrows;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,17 +37,19 @@ public class ServerApplication {
     private HomomorphicHash homomorphicHash;
     private RSAThreshold rsaThreshold;
     private LinearSignature linearSignature;
+    private DifferentialPrivacy differentialPrivacy;
     private HttpAdapter httpAdapter;
     private Buffer buffer;
     private int serverID;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    public ServerApplication(PublicParameters publicParameters, HomomorphicHash homomorphicHash, RSAThreshold rsaThreshold, LinearSignature linearSignature, NonceDistribution nonceDistribution, HttpAdapter httpAdapter) {
+    public ServerApplication(PublicParameters publicParameters, @Qualifier("homomorphicHash") HomomorphicHash homomorphicHash, RSAThreshold rsaThreshold, LinearSignature linearSignature, DifferentialPrivacy differentialPrivacy, HttpAdapter httpAdapter) {
         this.publicParameters = publicParameters;
         this.homomorphicHash = homomorphicHash;
         this.rsaThreshold = rsaThreshold;
         this.linearSignature = linearSignature;
+        this.differentialPrivacy = differentialPrivacy;
         this.httpAdapter = httpAdapter;
         this.buffer = new Buffer(publicParameters);
         this.serverID = publicParameters.getServerID();
@@ -132,6 +135,22 @@ public class ServerApplication {
             httpAdapter.sendWithTimeout(verifier.resolve(Construction.LINEAR.getEndpoint()), new LinearOutgoingData(substationID, fid, serverID, partialResult), 3000);
         }
 
+//      Compute partial result and proof for Differential Privacy construction
+        if (construction.equals(Construction.DP)) {
+            // We retrieve all data related to this computation of the homomorphic hash construction.
+            List<DPIncomingData> computationData = fidData.values().stream().map(v -> (DPIncomingData) v).collect(Collectors.toList());
+            List<BigInteger> shares = computationData.stream().map(DPIncomingData::getSecretShare).collect(Collectors.toList());
+
+            // Compute the partial proof function from the shares.
+            BigInteger partialProof = differentialPrivacy.partialProof(shares, fieldBase, generator);
+
+            // Compute the final eval function from the shares.
+            BigInteger partialResult = differentialPrivacy.partialEval(shares);
+
+            // Make the result of both computations available to others by sending it to the verifier.
+            httpAdapter.sendWithTimeout(verifier.resolve(Construction.DP.getEndpoint()), new DPOutgoingData(substationID, fid, serverID, partialResult, partialProof), 3000);
+        }
+
     }
 
 
@@ -145,8 +164,7 @@ public class ServerApplication {
 
     @SneakyThrows
     @PostMapping(value = "/hash-data")
-    void receiveHashShare(@RequestBody HashIncomingData dataFromClient) {
-        log.debug("Received share: {} ", objectMapper.writeValueAsString(dataFromClient));
+    void receiveHashShare(@RequestBody HashIncomingData dataFromClient) { log.debug("Received share: {} ", objectMapper.writeValueAsString(dataFromClient));
         buffer.putClientShare(dataFromClient);
         if (buffer.canCompute(dataFromClient.getSubstationID(), dataFromClient.getFid())) {
             new Thread(() -> performComputations(dataFromClient.getSubstationID(), dataFromClient.getFid())).start();
@@ -171,9 +189,10 @@ public class ServerApplication {
         }
     }
 
-    @PostMapping(value = "/nonce-data")
-    void receiveNonceDistributionShare(@RequestBody NonceIncomingData dataFromClient) {
-        log.debug("Received share: {} ", dataFromClient);
+    @SneakyThrows
+    @PostMapping(value = "/dp-data")
+    void receiveDPShare(@RequestBody DPIncomingData dataFromClient) {
+        log.debug("Received share: {} ", objectMapper.writeValueAsString(dataFromClient));
         buffer.putClientShare(dataFromClient);
         if (buffer.canCompute(dataFromClient.getSubstationID(), dataFromClient.getFid())) {
             new Thread(() -> performComputations(dataFromClient.getSubstationID(), dataFromClient.getFid())).start();
